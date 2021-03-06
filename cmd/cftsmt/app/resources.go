@@ -39,7 +39,9 @@ func makeResourcesCommand() *cobra.Command {
 			tbl := table.New("Type", "Name", "Address", "Mode", "Level")
 			tbl.WithHeaderFormatter(headerFmt)
 
-			resources := terraform.FindResourcesInModule(state.Values.RootModule, depth)
+			filter := createResourceFilter(viper.GetViper())
+
+			resources := terraform.FindResourcesInModule(state.Values.RootModule, depth, filter)
 
 			addResourceRows(resources, tbl)
 
@@ -47,7 +49,13 @@ func makeResourcesCommand() *cobra.Command {
 		},
 	}
 	cmd.Flags().IntVarP(&depth, ArgDepth, ShortArgMap[ArgDepth], ArgDefaultValueMap[ArgDepth].(int), ArgDescriptionMap[ArgDepth])
+	cmd.Flags().StringVarP(&modeFilter, ArgModeFilter, ShortArgMap[ArgModeFilter], ArgDefaultValueMap[ArgModeFilter].(string), ArgDescriptionMap[ArgModeFilter])
+	cmd.Flags().StringVarP(&typeFilter, ArgTypeFilter, ShortArgMap[ArgTypeFilter], ArgDefaultValueMap[ArgTypeFilter].(string), ArgDescriptionMap[ArgTypeFilter])
+	cmd.Flags().StringVarP(&valuesFilter, ArgValuesFilter, ShortArgMap[ArgValuesFilter], ArgDefaultValueMap[ArgValuesFilter].(string), ArgDescriptionMap[ArgValuesFilter])
 	viper.BindPFlag(ArgDepth, cmd.Flags().Lookup(ArgDepth))
+	viper.BindPFlag(ArgModeFilter, cmd.Flags().Lookup(ArgModeFilter))
+	viper.BindPFlag(ArgTypeFilter, cmd.Flags().Lookup(ArgTypeFilter))
+	viper.BindPFlag(ArgValuesFilter, cmd.Flags().Lookup(ArgValuesFilter))
 	cmd.AddCommand(makeResourcesValuesCommand())
 	cmd.AddCommand(makeResourceStatementsCommand())
 	return cmd

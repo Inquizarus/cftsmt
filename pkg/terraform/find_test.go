@@ -153,6 +153,6 @@ func TestThatFindResourcesInModuleWorksAsIntended(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		assert.Equal(t, c.e, len(terraform.FindResourcesInModule(c.m, c.d)))
+		assert.Equal(t, c.e, len(terraform.FindResourcesInModule(c.m, c.d, &terraform.ResourceFilter{})))
 	}
 }

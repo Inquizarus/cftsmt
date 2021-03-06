@@ -27,14 +27,18 @@ func FindResourceInModule(a string, m StateModule) *StateResource {
 // FindResourcesInModule traverses passed module and finds resources by digging
 // into child modules to a depth of passed value. Depth of 0 only return the root
 // modules resources
-func FindResourcesInModule(m StateModule, depth int) []StateResource {
+func FindResourcesInModule(m StateModule, depth int, filter *ResourceFilter) []StateResource {
 	resources := []StateResource{}
 	if depth < 0 {
 		return resources
 	}
-	resources = append(resources, m.Resources...)
+	for _, r := range m.Resources {
+		if true == filter.Matches(r) {
+			resources = append(resources, r)
+		}
+	}
 	for _, sm := range m.ChildModules {
-		resources = append(resources, FindResourcesInModule(sm, depth-1)...)
+		resources = append(resources, FindResourcesInModule(sm, depth-1, filter)...)
 	}
 	return resources
 }
