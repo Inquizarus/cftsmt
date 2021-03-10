@@ -74,3 +74,6 @@ build_all: clean
 	@make build 
 	@make build_linux_arm6
 	@make build_linux_amd64
+
+build_dry_run:
+	 goreleaser --snapshot --skip-publish --rm-dist
