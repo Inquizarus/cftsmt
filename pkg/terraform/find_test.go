@@ -7,6 +7,56 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestThatNilIsReturnedWhenTryingToFindEmptyResource(t *testing.T) {
+	r := terraform.StateResource{
+		Type:    "test_resource",
+		Name:    "this",
+		Address: "",
+	}
+	m := terraform.StateModule{
+		Address: "module.test",
+		Resources: []terraform.StateResource{
+			r,
+		},
+		ChildModules: []terraform.StateModule{},
+	}
+	o := terraform.FindResourceInModule(r.Address, m)
+
+	assert.Nil(t, o)
+}
+
+func TestThatNilIsReturnedWhenResourceIsNotFound(t *testing.T) {
+	r := terraform.StateResource{
+		Type:    "test_resource",
+		Name:    "this",
+		Address: "test_resource.this",
+	}
+	m := terraform.StateModule{
+		Address:      "module.test",
+		Resources:    []terraform.StateResource{},
+		ChildModules: []terraform.StateModule{},
+	}
+	o := terraform.FindResourceInModule(r.Address, m)
+
+	assert.Nil(t, o)
+}
+
+func TestThatNilIsReturnedWhenSubModuleeIsNotFound(t *testing.T) {
+	r := terraform.StateResource{
+		Type:    "test_resource",
+		Name:    "this",
+		Address: "module.sub.test_resource.this",
+	}
+	m := terraform.StateModule{
+		Address:      "module.test",
+		Resources:    []terraform.StateResource{},
+		ChildModules: []terraform.StateModule{},
+	}
+	o := terraform.FindResourceInModule(r.Address, m)
+
+	assert.Nil(t, o)
+}
+
 func TestThatResourceCanBeFoundInModuleByAddress(t *testing.T) {
 	r := terraform.StateResource{
 		Type:    "test_resource",
@@ -25,11 +75,53 @@ func TestThatResourceCanBeFoundInModuleByAddress(t *testing.T) {
 	assert.Equal(t, r, *o)
 }
 
+func TestThatDataResourceCanBeFoundInModuleByAddress(t *testing.T) {
+	r := terraform.StateResource{
+		Type:    "test_resource",
+		Name:    "this",
+		Mode:    "data",
+		Address: "data.test_resource.this",
+	}
+	m := terraform.StateModule{
+		Address: "module.test",
+		Resources: []terraform.StateResource{
+			r,
+		},
+		ChildModules: []terraform.StateModule{},
+	}
+	o := terraform.FindResourceInModule(r.Address, m)
+
+	assert.Equal(t, r, *o)
+}
+
 func TestThatResourceInSubModuleCanBeFoundInModuleByAddress(t *testing.T) {
 	r := terraform.StateResource{
 		Type:    "test_resource",
 		Name:    "this",
 		Address: "module.test.module.sub_test.test_resource.this",
+	}
+	m := terraform.StateModule{
+		Address: "module.test",
+		ChildModules: []terraform.StateModule{
+			{
+				Address: "module.test.module.sub_test",
+				Resources: []terraform.StateResource{
+					r,
+				},
+			},
+		},
+	}
+	o := terraform.FindResourceInModule(r.Address, m)
+
+	assert.Equal(t, r, *o)
+}
+
+func TestThatDataResourceInSubModuleCanBeFoundInModuleByAddress(t *testing.T) {
+	r := terraform.StateResource{
+		Type:    "test_resource",
+		Name:    "this",
+		Mode:    "data",
+		Address: "module.test.module.sub_test.data.test_resource.this",
 	}
 	m := terraform.StateModule{
 		Address: "module.test",

@@ -6,16 +6,27 @@ import "strings"
 // to find a specific resource by its address
 func FindResourceInModule(a string, m StateModule) *StateResource {
 	parts := strings.Split(a, ".")
-	if 1 > len(parts) {
+	if 1 > len(parts) || "" == parts[0] {
 		return nil
 	}
-	if "module" != parts[0] {
+
+	if 3 > len(parts) { // This is not a module or data prefixed resource
 		return FindResourceInModuleByTypeAndName(parts[0], parts[1], m)
+	}
+
+	if "data" == parts[0] {
+		return FindResourceInModuleByTypeAndName(parts[1], parts[2], m)
+	}
+
+	trimCount := 2
+
+	if strings.Contains(a, "data") {
+		trimCount = 3
 	}
 
 	// TODO: Add support for the case of module.module_name.module.module_name (and so on)
 
-	sm := FindModuleInModule(strings.Join(parts[:len(parts)-2], "."), m)
+	sm := FindModuleInModule(strings.Join(parts[:len(parts)-trimCount], "."), m)
 
 	if nil != sm {
 		return FindResourceInModuleByTypeAndName(parts[len(parts)-2], parts[len(parts)-1], *sm)
